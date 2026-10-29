@@ -224,7 +224,7 @@ const T = {
       spreken: s => `The conversation from ${s}`, sprekenLeeg: 'Starts after your first lesson',
     },
     cijfers: ['minutes this week', 'words you know well', 'days in a row'], situaties: '40 situations', binnenkort: 'Coming soon', huidig: 'Now',
-    stappen: { opwarmen: 'Warm-up', woorden: 'Words', zinnen: 'Sentences', dictee: 'Dictation', luisteren: 'Listening', schrijven: 'Writing', gesprek: 'Conversation', herhalen: 'Review', eindtoets: 'Final quiz', patroon: 'Pattern', lezen: 'Reading', knm: 'Life in the Netherlands' },
+    stappen: { opwarmen: 'Warm-up', woorden: 'Words', zinnen: 'Sentences', dictee: 'Dictation', luisteren: 'Listening', schrijven: 'Writing', gesprek: 'Conversation', herhalen: 'Review', extra: 'Extra practice', eindtoets: 'Final quiz', patroon: 'Pattern', lezen: 'Reading', knm: 'Life in the Netherlands' },
     gat: 'Choose the word that fits',
     proef: 'Practice exam A2', proefSub: 'Reading, listening, KNM, writing and speaking', proefVorige: 'last time:',
     proefLeeg: n => `Available after ${n} situations with all 3 levels done`, proefGehaald: 'parts passed',
@@ -251,6 +251,7 @@ const T = {
     klaarHerhalen: 'Review done. The words come back right before you forget them.',
     klaarLuister: 'Good listening practice. Listening every day makes Dutch easier to follow.',
     klaarSpreken: 'Good speaking practice. Saying it out loud makes it stick.',
+    nogMin: m => `${m} min left`, volgendBlok: b => `Next: ${b}`,
     sterren: n => `${n} of 3 stars`, voet: 'Prototype · translations are still being checked · Photo: Pixabay', datum: 'en-GB', taal: 'Help language',
   },
   ar: {
@@ -262,7 +263,7 @@ const T = {
       spreken: s => `المحادثة من ${s}`, sprekenLeeg: 'يبدأ بعد درسك الأول',
     },
     cijfers: ['دقيقة هذا الأسبوع', 'كلمة تعرفها جيدًا', 'أيام متتالية'], situaties: '40 موقفًا', binnenkort: 'قريبًا', huidig: 'الآن',
-    stappen: { opwarmen: 'إحماء', woorden: 'الكلمات', zinnen: 'الجمل', dictee: 'الإملاء', luisteren: 'الاستماع', schrijven: 'الكتابة', gesprek: 'المحادثة', herhalen: 'المراجعة', eindtoets: 'الاختبار النهائي', patroon: 'القاعدة', lezen: 'القراءة', knm: 'الحياة في هولندا' },
+    stappen: { opwarmen: 'إحماء', woorden: 'الكلمات', zinnen: 'الجمل', dictee: 'الإملاء', luisteren: 'الاستماع', schrijven: 'الكتابة', gesprek: 'المحادثة', herhalen: 'المراجعة', extra: 'تدريب إضافي', eindtoets: 'الاختبار النهائي', patroon: 'القاعدة', lezen: 'القراءة', knm: 'الحياة في هولندا' },
     gat: 'اختر الكلمة المناسبة',
     proef: 'امتحان تجريبي A2', proefSub: 'القراءة والاستماع وKNM والكتابة والتحدّث', proefVorige: 'آخر مرة:',
     proefLeeg: n => `متاح بعد إنهاء ${n} مواقف بمستوياتها الثلاثة`, proefGehaald: 'أجزاء ناجحة',
@@ -289,6 +290,7 @@ const T = {
     klaarHerhalen: 'انتهت المراجعة. ستعود الكلمات قبل أن تنساها مباشرة.',
     klaarLuister: 'تدريب استماع جيد. الاستماع كل يوم يجعل الهولندية أسهل.',
     klaarSpreken: 'تدريب تحدّث جيد. قولها بصوت عالٍ يثبّتها في الذاكرة.',
+    nogMin: m => `بقي ${m} دقيقة`, volgendBlok: b => `التالي: ${b}`,
     sterren: n => `${n} من 3 نجوم`, voet: 'نسخة تجريبية · الترجمات قيد المراجعة · الصورة: Pixabay', datum: 'ar', taal: 'لغة المساعدة',
   },
 };
@@ -534,7 +536,7 @@ async function startLes(sit, n) {
     <div class="ballon"><img class="wie" src="${beeld(pers(sit).foto)}" alt="${pers(sit).naam}"><div class="tekst">${nl(L.gesprek[0].zij)}${hulp(L.gesprek[0])}</div></div>
     <p>${L.scene[TAAL]}</p>
     <ul class="lijst">${stappen.map(s => `<li><span>${t_().lijst[s]}</span><span>${s === 'gesprek' ? t_().beurten(L.gesprek.length) : s === 'woorden' ? L.woorden.length : s === 'eindtoets' ? Math.min(EIND, L.woorden.length) : s === 'opwarmen' ? L.opwarmen : S.taken.filter(t => t.stap === s).length}</span></li>`).join('')}</ul>
-    <div class="duw"><button class="knop" id="begin">${t_().begin(L.minuten)}</button></div>`);
+    <div class="duw"><button class="knop" id="begin">${t_().begin(Math.max(L.minuten, BLOK_MIN))}</button></div>`);
   document.getElementById('begin').onclick = () => { S.modus = 'sessie'; S.start = Date.now(); teken(); };
 }
 // ---------- proefexamen ----------
@@ -572,6 +574,7 @@ function toonExamen(delen) {
   document.getElementById('terug').onclick = toonVandaag;
 }
 
+const BLOKKEN = ['herhalen', 'nieuw', 'luisteren', 'spreken'];
 const blok3 = () => ['luisteren', 'lezen', 'schrijven'][Math.floor(Date.now() / 864e5) % 3]; // blok 3 wisselt per dag
 async function startBlok(blok) {
   const d = lees();
@@ -630,7 +633,8 @@ function tekenVoortgang() {
   }).join('');
   const st = document.getElementById('staptekst'), stoppen = document.getElementById('stoppen');
   if (stoppen) stoppen.textContent = t_().stoppen;
-  if (st) st.textContent = huidig ? t_().stap(stappen.indexOf(huidig) + 1, stappen.length, t_().stappen[huidig]) : '';
+  if (st) st.textContent = (huidig ? t_().stap(stappen.indexOf(huidig) + 1, stappen.length, t_().stappen[huidig]) : '')
+    + (S.start && S.blok !== 'examen' && bezig() < BLOK_MIN ? ` · ${t_().nogMin(Math.ceil(BLOK_MIN - bezig()))}` : '');
 }
 function boekMinuten() {
   if (!S.start) return;
@@ -660,6 +664,39 @@ function terugInRij(taak) { // fouten zijn data: de taak komt later in de sessie
   S.taken.splice(eindeStap === -1 ? S.taken.length : eindeStap, 0, kopie);
 }
 function volgende() { S.i++; teken(); }
+
+// Elk blok duurt echt een kwartier (4 blokken = het uur van de belofte). Is de lijst op voordat de tijd om is,
+// dan komt er een extra ronde bij: eerst wat vandaag fout ging, daarna willekeurig uit wat je kent.
+const BLOK_MIN = 15;
+const bezig = () => S.start ? (Date.now() - S.start) / 60000 : 0;
+function extraRonde() {
+  if (!S.blok || S.blok === 'examen') return false;
+  const d = lees(), ronde = [];
+  if (S.blok === 'spreken') { // nog een gesprek uit een eerder afgeronde les; eerst een die je vandaag nog niet deed
+    const alle = Object.keys(d.klaar || {}); if (!alle.length) return false;
+    const gehad = new Set(S.taken.filter(t => t.g).map(t => `${t.sit.id}:${t.n}`));
+    const nieuw = alle.filter(k => !gehad.has(k));
+    const [sid, n] = (nieuw.length ? nieuw[nieuw.length - 1] : alle[Math.floor(Math.random() * alle.length)]).split(':');
+    const sit = sitVan(sid); if (!sit || !(sit.niveaus[+n].gesprek || []).length) return false;
+    sit.niveaus[+n].gesprek.forEach(g => ronde.push({ soort: g.goed ? 'vrij' : 'gesprek', stap: 'gesprek', g, sit, n: +n }));
+  } else {
+    const pool = new Map();
+    const voeg = (sit, x, soort) => { if (sit && x && x.nl) pool.set(itemSleutel(sit, x), { sit, x, soort }); };
+    S.taken.forEach(t => voeg(sitVanTaak(t), t.w || t.z, t.w ? 'woord' : 'zin'));
+    if (S.blok !== 'nieuw') Object.keys(d.items || {}).forEach(k => { const it = itemZoek(k); if (it) voeg(it.sit, it.x, it.soort); }); // in een les is alleen de audio van die les geladen
+    if (!pool.size) return false;
+    const plaatjes = [...pool.values()].filter(v => v.soort === 'woord' && v.x.foto).map(v => v.x);
+    const lijst = shuffle([...pool.entries()]).sort(([a], [b]) => (S.fouten[b] || 0) - (S.fouten[a] || 0)).slice(0, 8);
+    lijst.forEach(([, it], i) => {
+      if (it.soort === 'zin') return ronde.push({ soort: i % 2 ? 'dictee' : 'bouw', stap: 'extra', z: it.x, sit: it.sit, luisteren: true });
+      const ander = shuffle(plaatjes.filter(w => w !== it.x)).slice(0, 2);
+      const soort = it.x.foto && ander.length === 2 ? ['hoor', 'typ', 'hoorTyp'][i % 3] : ['typ', 'hoorTyp'][i % 2];
+      ronde.push({ soort, stap: 'extra', w: it.x, sit: it.sit, opties: shuffle([it.x, ...ander]) });
+    });
+  }
+  S.taken.push(...ronde);
+  return ronde.length > 0;
+}
 const uitslag = (goed, kop, regel) => `<div class="uitslag ${goed ? 'goed' : 'fout'}" role="status">${kop}${regel ? `<span>${regel}</span>` : ''}</div>`;
 const duwKnop = () => `<div class="duw"><button class="knop" id="verder">${t_().verder}</button></div>`;
 function bindVerder() { const b = document.getElementById('verder'); if (b) { b.onclick = volgende; b.focus(); } }
@@ -668,7 +705,7 @@ const datum = ms => new Date(ms).toLocaleDateString(t_().datum, { weekday: 'long
 
 function teken() {
   tekenVoortgang();
-  if (S.i >= S.taken.length) return klaar();
+  if (S.i >= S.taken.length) { if (bezig() < BLOK_MIN && extraRonde()) return teken(); return klaar(); }
   const t = S.taken[S.i];
   ({ intro, kies, hoor, typ, hoorTyp: typ, bouw, dictee, luisteren, schrijven, gesprek, vrij, toets, toetsUitslag, patroonUitleg, gat, lezen, knm })[t.soort](t);
 }
@@ -1080,7 +1117,8 @@ function toonKlaar() {
   if (!kaart || !document.body.contains(kaart)) sessieKader();
   tekenVoortgang();
   if (S.blok === 'examen') return toonExamen(examenUitslag());
-  const n = uitkomst.sterren;
+  const n = uitkomst.sterren, [, dag] = dagLog();
+  const volg = BLOKKEN.find(b => !dag.blokken[b] && (b === 'nieuw' ? huidigeLes() : b === 'spreken' ? laatstAfgerond() : Object.keys(lees().items || {}).length));
   const kanNu = S.les ? S.les.sit.niveaus[S.les.n].kanNu[TAAL] : { herhalen: t_().klaarHerhalen, luisteren: t_().klaarLuister, spreken: t_().klaarSpreken }[S.blok];
   const lastig = Object.keys(S.fouten).map(k => { const it = itemZoek(k); if (it) return { k, nl: it.x.nl };
     const [sid, id] = k.split(':'); const sit = sitVan(sid); const g = sit && sit.niveaus.flatMap(x => x.gesprek || []).find(x => x.id === id);
@@ -1089,8 +1127,9 @@ function toonKlaar() {
     <p class="kan">${kanNu}</p>
     ${lastig.length ? `<p class="opdracht">${t_().extraOefenen}</p><ul class="lijst">${lastig.map(x => `<li>${nl(x.nl)}<span>${t_().keerFout(S.fouten[x.k])}</span></li>`).join('')}</ul>` : `<div class="tip">${t_().geenFouten}</div>`}
     ${uitkomst.volgende ? `<div class="tip">${t_().volgende} <b>${datum(uitkomst.volgende)}</b>. ${t_().kortBeter}</div>` : ''}
-    <div class="duw"><button class="knop" id="terug">${t_().terug}</button></div>`);
+    <div class="duw">${volg ? `<button class="knop" id="volg">${t_().volgendBlok(t_().blokken[BLOKKEN.indexOf(volg)])}</button>` : ''}<button class="knop${volg ? ' zacht' : ''}" id="terug">${t_().terug}</button></div>`);
   document.getElementById('terug').onclick = toonVandaag;
+  if (volg) document.getElementById('volg').onclick = () => startBlok(volg);
 }
 
 try { speechSynthesis.getVoices(); } catch {}
