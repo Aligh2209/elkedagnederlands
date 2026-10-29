@@ -95,6 +95,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .knop { background: var(--ink); color: var(--surface); border-radius: 12px; padding: 14px 20px; font-weight: 700; font-size: 1.05rem; width: 100%; transition: transform .1s; }
 .knop:active { transform: scale(.98); }
 .knop:disabled { opacity: .4; cursor: default; }
+.knoppen [hidden] { display: none; }
 .knop.zacht { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 .luister { align-self: center; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-weight: 700; font-size: .95rem; }
 .luister.groot { padding: 14px 24px; font-size: 1.05rem; border-width: 2px; border-color: var(--accent); }
@@ -216,15 +217,17 @@ const PLAN = [
 
 const T = {
   en: {
-    vandaag: 'Today', minVan: (m) => `${m} of 60 minutes`, blokken: ['Review', 'Something new', 'Listen, read or write', 'Speaking'],
+    vandaag: 'Today', minVan: (m) => `${m} of 60 minutes`, blokken: ['Something new', 'Listen', 'Say it out loud', 'Conversation'],
     blokUitleg: {
       herhalen: n => n ? `${n} things are due today` : 'Nothing due. Extra practice with what you know.',
       herhalenLeeg: 'Starts after your first lesson', nieuw: (s, n) => `${s} · ${n}`, alles: 'Everything is done. Well done!',
       luisteren: 'A conversation at normal speed', schrijven: 'A short message to write', lezen: 'A letter or message to read', hoorOefen: 'Listen and recognise words you know',
+      hoor: n => n ? `Only listening · ${n} words come back today` : 'Only listening · words and sentences you know',
+      zeggen: 'Hear a word and say it out loud. As many as you can.',
       spreken: s => `The conversation from ${s}`, sprekenLeeg: 'Starts after your first lesson',
     },
     cijfers: ['minutes this week', 'words you know well', 'days in a row'], situaties: '40 situations', binnenkort: 'Coming soon', huidig: 'Now',
-    stappen: { opwarmen: 'Warm-up', woorden: 'Words', zinnen: 'Sentences', dictee: 'Dictation', luisteren: 'Listening', schrijven: 'Writing', gesprek: 'Conversation', herhalen: 'Review', extra: 'Extra practice', eindtoets: 'Final quiz', patroon: 'Pattern', lezen: 'Reading', knm: 'Life in the Netherlands' },
+    stappen: { opwarmen: 'Warm-up', woorden: 'Words', zinnen: 'Sentences', dictee: 'Dictation', luisteren: 'Listening', schrijven: 'Writing', gesprek: 'Conversation', herhalen: 'Review', zeggen: 'Say it', extra: 'Extra practice', eindtoets: 'Final quiz', patroon: 'Pattern', lezen: 'Reading', knm: 'Life in the Netherlands' },
     gat: 'Choose the word that fits',
     proef: 'Practice exam A2', proefSub: 'Reading, listening, KNM, writing and speaking', proefVorige: 'last time:',
     proefLeeg: n => `Available after ${n} situations with all 3 levels done`, proefGehaald: 'parts passed',
@@ -251,19 +254,22 @@ const T = {
     klaarHerhalen: 'Review done. The words come back right before you forget them.',
     klaarLuister: 'Good listening practice. Listening every day makes Dutch easier to follow.',
     klaarSpreken: 'Good speaking practice. Saying it out loud makes it stick.',
-    nogMin: m => `${m} min left`, volgendBlok: b => `Next: ${b}`,
+    nogMin: m => `${m} min left`, zegWat: 'What is this? Say it out loud.', zegZin: 'Listen and say it after.', toonWoord: 'Show the word',
+    klaarZeggen: 'Well done. Every word you say out loud is easier to say tomorrow.', volgendBlok: b => `Next: ${b}`,
     sterren: n => `${n} of 3 stars`, voet: 'Prototype · translations are still being checked · Photo: Pixabay', datum: 'en-GB', taal: 'Help language',
   },
   ar: {
-    vandaag: 'اليوم', minVan: (m) => `${m} من 60 دقيقة`, blokken: ['المراجعة', 'شيء جديد', 'استماع أو قراءة أو كتابة', 'التحدّث'],
+    vandaag: 'اليوم', minVan: (m) => `${m} من 60 دقيقة`, blokken: ['شيء جديد', 'الاستماع', 'قلها بصوت عالٍ', 'المحادثة'],
     blokUitleg: {
       herhalen: n => n ? `${n} عناصر للمراجعة اليوم` : 'لا شيء للمراجعة. تدريب إضافي على ما تعرفه.',
       herhalenLeeg: 'يبدأ بعد درسك الأول', nieuw: (s, n) => `${s} · ${n}`, alles: 'أنهيت كل شيء. أحسنت!',
       luisteren: 'محادثة بسرعة عادية', schrijven: 'رسالة قصيرة للكتابة', lezen: 'رسالة أو نص للقراءة', hoorOefen: 'استمع وتعرّف على كلمات تعرفها',
+      hoor: n => n ? `استماع فقط · ${n} كلمات تعود اليوم` : 'استماع فقط · كلمات وجمل تعرفها',
+      zeggen: 'اسمع الكلمة وقلها بصوت عالٍ. أكبر عدد ممكن.',
       spreken: s => `المحادثة من ${s}`, sprekenLeeg: 'يبدأ بعد درسك الأول',
     },
     cijfers: ['دقيقة هذا الأسبوع', 'كلمة تعرفها جيدًا', 'أيام متتالية'], situaties: '40 موقفًا', binnenkort: 'قريبًا', huidig: 'الآن',
-    stappen: { opwarmen: 'إحماء', woorden: 'الكلمات', zinnen: 'الجمل', dictee: 'الإملاء', luisteren: 'الاستماع', schrijven: 'الكتابة', gesprek: 'المحادثة', herhalen: 'المراجعة', extra: 'تدريب إضافي', eindtoets: 'الاختبار النهائي', patroon: 'القاعدة', lezen: 'القراءة', knm: 'الحياة في هولندا' },
+    stappen: { opwarmen: 'إحماء', woorden: 'الكلمات', zinnen: 'الجمل', dictee: 'الإملاء', luisteren: 'الاستماع', schrijven: 'الكتابة', gesprek: 'المحادثة', herhalen: 'المراجعة', zeggen: 'النطق', extra: 'تدريب إضافي', eindtoets: 'الاختبار النهائي', patroon: 'القاعدة', lezen: 'القراءة', knm: 'الحياة في هولندا' },
     gat: 'اختر الكلمة المناسبة',
     proef: 'امتحان تجريبي A2', proefSub: 'القراءة والاستماع وKNM والكتابة والتحدّث', proefVorige: 'آخر مرة:',
     proefLeeg: n => `متاح بعد إنهاء ${n} مواقف بمستوياتها الثلاثة`, proefGehaald: 'أجزاء ناجحة',
@@ -290,7 +296,8 @@ const T = {
     klaarHerhalen: 'انتهت المراجعة. ستعود الكلمات قبل أن تنساها مباشرة.',
     klaarLuister: 'تدريب استماع جيد. الاستماع كل يوم يجعل الهولندية أسهل.',
     klaarSpreken: 'تدريب تحدّث جيد. قولها بصوت عالٍ يثبّتها في الذاكرة.',
-    nogMin: m => `بقي ${m} دقيقة`, volgendBlok: b => `التالي: ${b}`,
+    nogMin: m => `بقي ${m} دقيقة`, zegWat: 'ما هذا؟ قلها بصوت عالٍ.', zegZin: 'استمع وكرّرها.', toonWoord: 'أظهر الكلمة',
+    klaarZeggen: 'أحسنت. كل كلمة تقولها بصوت عالٍ تصبح أسهل غدًا.', volgendBlok: b => `التالي: ${b}`,
     sterren: n => `${n} من 3 نجوم`, voet: 'نسخة تجريبية · الترجمات قيد المراجعة · الصورة: Pixabay', datum: 'ar', taal: 'لغة المساعدة',
   },
 };
@@ -434,11 +441,10 @@ function toonVandaag() {
   const d = lees(), [, dag] = dagLog(), les = huidigeLes(), afgerond = laatstAfgerond(), due = teHerhalen().length;
   const heeftItems = Object.keys(d.items || {}).length > 0;
   const uitleg = t_().blokUitleg;
-  const luisterMet3 = Object.keys(d.klaar || {}).map(k => k.split(':')).filter(([, n]) => +n >= 2).map(([s]) => sitVan(s)).filter(s => s && s.niveaus[2]);
   const blokken = [
-    { id: 'herhalen', sub: heeftItems ? uitleg.herhalen(due) : uitleg.herhalenLeeg, uit: !heeftItems },
     { id: 'nieuw', sub: les ? uitleg.nieuw(les.sit.titel, les.sit.niveaus[les.n].naam[TAAL]) : uitleg.alles, uit: !les },
-    { id: 'luisteren', sub: luisterMet3.length ? uitleg[blok3()] : (heeftItems ? uitleg.hoorOefen : uitleg.herhalenLeeg), uit: !heeftItems },
+    { id: 'luisteren', sub: heeftItems ? uitleg.hoor(due) : uitleg.herhalenLeeg, uit: !heeftItems },
+    { id: 'zeggen', sub: heeftItems ? uitleg.zeggen : uitleg.herhalenLeeg, uit: !heeftItems },
     { id: 'spreken', sub: afgerond ? uitleg.spreken(afgerond.sit.titel) : uitleg.sprekenLeeg, uit: !afgerond },
   ];
   const week = Object.entries(d.dagen || {}).filter(([k]) => (Date.now() - Date.parse(k)) / 864e5 < 7).reduce((s, [, v]) => s + v.min, 0);
@@ -574,39 +580,38 @@ function toonExamen(delen) {
   document.getElementById('terug').onclick = toonVandaag;
 }
 
-const BLOKKEN = ['herhalen', 'nieuw', 'luisteren', 'spreken'];
-const blok3 = () => ['luisteren', 'lezen', 'schrijven'][Math.floor(Date.now() / 864e5) % 3]; // blok 3 wisselt per dag
+// Een dag = 4 blokken van 15 minuten: iets nieuws, alleen luisteren, hardop zeggen, en afsluiten met een gesprek.
+// Het herhaalschema zit in luisteren en zeggen: wat vandaag terug moet komen, komt daar eerst.
+const BLOKKEN = ['nieuw', 'luisteren', 'zeggen', 'spreken'];
+// Alleen luisteren: elke taak begint met geluid (plaatje kiezen, woord typen, zin bouwen of dictee).
+function luisterTaken(items) {
+  const plaatjes = items.filter(x => x.soort === 'woord' && x.x.foto).map(x => x.x);
+  return items.map((it, i) => {
+    if (it.soort === 'zin') return { soort: i % 2 ? 'dictee' : 'bouw', stap: 'luisteren', z: it.x, sit: it.sit, luisteren: true };
+    const ander = shuffle(plaatjes.filter(w => w !== it.x)).slice(0, 2);
+    return it.x.foto && ander.length === 2 && i % 3 !== 2
+      ? { soort: 'hoor', stap: 'luisteren', w: it.x, sit: it.sit, opties: shuffle([it.x, ...ander]) }
+      : { soort: 'hoorTyp', stap: 'luisteren', w: it.x, sit: it.sit };
+  });
+}
+
 async function startBlok(blok) {
   const d = lees();
   await laadAudio(Object.keys(d.items || {}).map(k => k.split(':')[0]).concat(Object.keys(d.klaar || {}).map(k => k.split(':')[0])));
   if (blok === 'nieuw') { const les = huidigeLes(); if (les) startLes(les.sit, les.n); return; }
   let taken = [];
-  if (blok === 'herhalen') {
-    let lijst = teHerhalen();
-    if (!lijst.length) lijst = shuffle(Object.keys(d.items || {}).filter(itemZoek)).slice(0, 10);
-    lijst.slice(0, 15).forEach((k, i) => {
-      const it = itemZoek(k);
-      if (it.soort === 'woord') taken.push({ soort: i % 2 ? 'hoorTyp' : 'typ', stap: 'herhalen', w: it.x, sit: it.sit });
-      else taken.push({ soort: 'dictee', stap: 'herhalen', z: it.x, sit: it.sit });
-    });
-  }
+  const bekend = () => { // eerst wat volgens het herhaalschema vandaag terug moet komen, daarna de rest door elkaar
+    const due = teHerhalen(), rest = shuffle(Object.keys(d.items || {}).filter(k => !due.includes(k)));
+    return [...due, ...rest].map(itemZoek).filter(Boolean);
+  };
   if (blok === 'luisteren') {
-    const met3 = Object.keys(d.klaar || {}).map(k => k.split(':')).filter(([, n]) => +n >= 2).map(([s]) => sitVan(s)).filter(s => s && s.niveaus[2]);
-    if (met3.length) {
-      const sit = met3[met3.length - 1], L = sit.niveaus[2];
-      const keuze = blok3();
-      if (keuze === 'luisteren' && L.luisteren) taken.push({ soort: 'luisteren', stap: 'luisteren', l: L.luisteren, sit });
-      else if (keuze === 'lezen' && L.lezen) taken.push({ soort: 'lezen', stap: 'lezen', l: L.lezen, sit });
-      else if (L.schrijven) taken.push({ soort: 'schrijven', stap: 'schrijven', s: L.schrijven, sit });
-    }
-    // luisteren naar bekende woorden en zinnen: horen, herkennen, nabouwen
-    const bekend = Object.keys(d.items || {}).map(itemZoek).filter(Boolean);
-    const woorden = bekend.filter(x => x.soort === 'woord'), zinnen = bekend.filter(x => x.soort === 'zin');
-    shuffle(woorden).slice(0, 6).forEach(it => {
-      const pool = woorden.filter(o => o.x.foto && o.x !== it.x).map(o => o.x);
-      if (pool.length >= 2) taken.push({ soort: 'hoor', stap: 'luisteren', w: it.x, sit: it.sit, opties: shuffle([it.x, ...shuffle(pool).slice(0, 2)]) });
-    });
-    shuffle(zinnen).slice(0, 4).forEach(it => taken.push({ soort: 'bouw', stap: 'luisteren', z: it.x, sit: it.sit, luisteren: true }));
+    const met3 = Object.keys(d.klaar || {}).map(k => k.split(':')).filter(([, n]) => +n >= 2).map(([s]) => sitVan(s)).filter(s => s && s.niveaus[2] && s.niveaus[2].luisteren);
+    if (met3.length) { const sit = met3[Math.floor(Date.now() / 864e5) % met3.length]; taken.push({ soort: 'luisteren', stap: 'luisteren', l: sit.niveaus[2].luisteren, sit }); }
+    taken.push(...luisterTaken(bekend().slice(0, 12)));
+  }
+  if (blok === 'zeggen') {
+    const lijst = bekend(), woorden = lijst.filter(x => x.soort === 'woord').slice(0, 10), zinnen = lijst.filter(x => x.soort === 'zin').slice(0, 3);
+    [...woorden, ...zinnen].forEach(it => taken.push({ soort: 'zeg', stap: 'zeggen', [it.soort === 'woord' ? 'w' : 'z']: it.x, sit: it.sit }));
   }
   if (blok === 'spreken') {
     const a = laatstAfgerond(); if (!a) return;
@@ -687,6 +692,8 @@ function extraRonde() {
     if (!pool.size) return false;
     const plaatjes = [...pool.values()].filter(v => v.soort === 'woord' && v.x.foto).map(v => v.x);
     const lijst = shuffle([...pool.entries()]).sort(([a], [b]) => (S.fouten[b] || 0) - (S.fouten[a] || 0)).slice(0, 8);
+    if (S.blok === 'luisteren') { S.taken.push(...luisterTaken(lijst.map(([, it]) => it)).map(t => ({ ...t, stap: 'extra' }))); return true; }
+    if (S.blok === 'zeggen') { S.taken.push(...lijst.map(([, it]) => ({ soort: 'zeg', stap: 'zeggen', [it.soort === 'woord' ? 'w' : 'z']: it.x, sit: it.sit }))); return true; }
     lijst.forEach(([, it], i) => {
       if (it.soort === 'zin') return ronde.push({ soort: i % 2 ? 'dictee' : 'bouw', stap: 'extra', z: it.x, sit: it.sit, luisteren: true });
       const ander = shuffle(plaatjes.filter(w => w !== it.x)).slice(0, 2);
@@ -707,7 +714,7 @@ function teken() {
   tekenVoortgang();
   if (S.i >= S.taken.length) { if (bezig() < BLOK_MIN && extraRonde()) return teken(); return klaar(); }
   const t = S.taken[S.i];
-  ({ intro, kies, hoor, typ, hoorTyp: typ, bouw, dictee, luisteren, schrijven, gesprek, vrij, toets, toetsUitslag, patroonUitleg, gat, lezen, knm })[t.soort](t);
+  ({ intro, kies, zeg, hoor, typ, hoorTyp: typ, bouw, dictee, luisteren, schrijven, gesprek, vrij, toets, toetsUitslag, patroonUitleg, gat, lezen, knm })[t.soort](t);
 }
 
 // Ezelsbruggetje bij een woord, zodat het blijft hangen.
@@ -774,6 +781,22 @@ async function opnemen(w, b, uit) {
     uit.textContent = t_().jijEnStem; a.onended = () => spreek(w.nl); a.play();
   };
   b.classList.add('bezig'); uit.textContent = t_().luistert; rec.start(); setTimeout(() => rec.stop(), 2500);
+}
+
+// Zeggen: bij een woord zie je eerst alleen de tekening en probeer je het zelf te zeggen (ophalen uit je geheugen),
+// daarna hoor en zie je het woord en zeg je het na. Een zin hoor en zie je meteen en zeg je na.
+function zeg(t) {
+  const x = t.w || t.z, woord = !!t.w;
+  el(`<p class="opdracht">${nogEens(t)}${woord ? t_().zegWat : t_().zegZin}</p>
+    ${woord ? foto(t.w) : ''}
+    <div id="onthul" ${woord ? 'hidden' : ''}><p class="woord" lang="nl" dir="ltr">${nl(x.nl)}</p>${hulpBlok(x)}${woord ? onthoud(t.w) : ''}</div>
+    <div class="knoppen">${woord ? `<button class="luister" id="toon">${t_().toonWoord}</button>` : ''}<button class="luister" id="luister" ${woord ? 'hidden' : ''}>${ICOON.luister} ${t_().luister}</button>${zegNaKnop()}</div>
+    <p class="vertaling" id="gehoord"></p>${duwKnop()}`);
+  const luister = document.getElementById('luister');
+  const laat = () => { document.getElementById('onthul').hidden = false; luister.hidden = false; const b = document.getElementById('toon'); if (b) b.remove(); spreek(x.nl); };
+  luister.onclick = () => spreek(x.nl);
+  if (woord) document.getElementById('toon').onclick = laat; else spreek(x.nl);
+  zegNa(x); bindVerder();
 }
 
 function kies(t) {
@@ -1097,7 +1120,7 @@ function klaar() {
   const [, dag] = (() => { d.dagen = d.dagen || {}; const k = vandaagStr(); d.dagen[k] = d.dagen[k] || { min: 0, blokken: {} }; return [d, d.dagen[k]]; })();
   // Herhaalschema: zonder fouten schuift een woord of zin naar een groter vak, met fouten één vak terug.
   const geoefend = new Map();
-  S.taken.forEach(t => { const sit = sitVanTaak(t), x = t.w || t.z; if (x && sit) geoefend.set(itemSleutel(sit, x), true); });
+  S.taken.forEach(t => { const sit = sitVanTaak(t), x = t.w || t.z; if (x && sit && t.soort !== 'zeg') geoefend.set(itemSleutel(sit, x), true); }); // zeggen is geen toets: je ziet het woord
   geoefend.forEach((_, k) => {
     const oud = d.items[k] ? d.items[k].vak : -1;
     const vak = S.fouten[k] ? Math.max(0, oud - 1) : Math.min(oud + 1, DAGEN.length - 1);
@@ -1119,7 +1142,7 @@ function toonKlaar() {
   if (S.blok === 'examen') return toonExamen(examenUitslag());
   const n = uitkomst.sterren, [, dag] = dagLog();
   const volg = BLOKKEN.find(b => !dag.blokken[b] && (b === 'nieuw' ? huidigeLes() : b === 'spreken' ? laatstAfgerond() : Object.keys(lees().items || {}).length));
-  const kanNu = S.les ? S.les.sit.niveaus[S.les.n].kanNu[TAAL] : { herhalen: t_().klaarHerhalen, luisteren: t_().klaarLuister, spreken: t_().klaarSpreken }[S.blok];
+  const kanNu = S.les ? S.les.sit.niveaus[S.les.n].kanNu[TAAL] : { herhalen: t_().klaarHerhalen, luisteren: t_().klaarLuister, zeggen: t_().klaarZeggen, spreken: t_().klaarSpreken }[S.blok];
   const lastig = Object.keys(S.fouten).map(k => { const it = itemZoek(k); if (it) return { k, nl: it.x.nl };
     const [sid, id] = k.split(':'); const sit = sitVan(sid); const g = sit && sit.niveaus.flatMap(x => x.gesprek || []).find(x => x.id === id);
     return g ? { k, nl: g.jij || toonModel(g.goed[0]) } : null; }).filter(Boolean);
