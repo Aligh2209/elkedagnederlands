@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Leer elke dag Nederlands in een uur, met echte situaties uit het dagelijks leven.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14213d">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Elke dag NL">
 <title>Elke dag Nederlands</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,6 +101,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .knop:active { transform: scale(.98); }
 .knop:disabled { opacity: .4; cursor: default; }
 .knoppen [hidden] { display: none; }
+.herinner { cursor: default; grid-template-columns: 40px minmax(0, 1fr); } .herinner-rij { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.herinner-rij input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.herinner-rij .knop { width: auto; padding: 8px 14px; }
 .knop.zacht { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 .luister { align-self: center; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-weight: 700; font-size: .95rem; }
 .luister.groot { padding: 14px 24px; font-size: 1.05rem; border-width: 2px; border-color: var(--accent); }
@@ -254,7 +262,11 @@ const T = {
     klaarHerhalen: 'Review done. The words come back right before you forget them.',
     klaarLuister: 'Good listening practice. Listening every day makes Dutch easier to follow.',
     klaarSpreken: 'Good speaking practice. Saying it out loud makes it stick.',
-    nogMin: m => `${m} min left`, zegWat: 'What is this? Say it out loud.', zegZin: 'Listen and say it after.', toonWoord: 'Show the word',
+    nogMin: m => `${m} min left`,
+    installeer: 'Put the app on your phone', installSub: 'Opens from your home screen, also without internet.',
+    iosTip: 'In Safari: tap the Share button, then "Add to Home Screen".',
+    herinner: 'Daily reminder', herinnerSub: 'Pick a time. Your calendar reminds you every day.', herinnerKnop: 'Add to my calendar',
+    herinnerGezet: t => `Reminder set for ${t}. Check that the event is saved in your calendar.`, zegWat: 'What is this? Say it out loud.', zegZin: 'Listen and say it after.', toonWoord: 'Show the word',
     klaarZeggen: 'Well done. Every word you say out loud is easier to say tomorrow.', volgendBlok: b => `Next: ${b}`,
     sterren: n => `${n} of 3 stars`, voet: 'Prototype · translations are still being checked · Photo: Pixabay', datum: 'en-GB', taal: 'Help language',
   },
@@ -296,7 +308,11 @@ const T = {
     klaarHerhalen: 'انتهت المراجعة. ستعود الكلمات قبل أن تنساها مباشرة.',
     klaarLuister: 'تدريب استماع جيد. الاستماع كل يوم يجعل الهولندية أسهل.',
     klaarSpreken: 'تدريب تحدّث جيد. قولها بصوت عالٍ يثبّتها في الذاكرة.',
-    nogMin: m => `بقي ${m} دقيقة`, zegWat: 'ما هذا؟ قلها بصوت عالٍ.', zegZin: 'استمع وكرّرها.', toonWoord: 'أظهر الكلمة',
+    nogMin: m => `بقي ${m} دقيقة`,
+    installeer: 'ضع التطبيق على هاتفك', installSub: 'يفتح من الشاشة الرئيسية، وبدون إنترنت أيضًا.',
+    iosTip: 'في Safari: اضغط زر المشاركة، ثم «إضافة إلى الشاشة الرئيسية».',
+    herinner: 'تذكير يومي', herinnerSub: 'اختر وقتًا. يذكّرك التقويم كل يوم.', herinnerKnop: 'أضف إلى التقويم',
+    herinnerGezet: t => `تم ضبط التذكير على ${t}. تأكّد أن الموعد محفوظ في التقويم.`, zegWat: 'ما هذا؟ قلها بصوت عالٍ.', zegZin: 'استمع وكرّرها.', toonWoord: 'أظهر الكلمة',
     klaarZeggen: 'أحسنت. كل كلمة تقولها بصوت عالٍ تصبح أسهل غدًا.', volgendBlok: b => `التالي: ${b}`,
     sterren: n => `${n} من 3 نجوم`, voet: 'نسخة تجريبية · الترجمات قيد المراجعة · الصورة: Pixabay', datum: 'ar', taal: 'لغة المساعدة',
   },
@@ -348,6 +364,7 @@ const beeld = pad => { const n = (pad || '').split('/').pop().replace(/\.svg$/, 
 const foto = w => `<img class="foto" src="${beeld(w.foto)}" alt="${w[TAAL]}">`;
 const ICOON = {
   luister: '<svg class="icoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  klok: '<svg class="icoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M5 3 2 6M19 3l3 3"/></svg>',
   mic: '<svg class="icoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>',
 };
 
@@ -463,6 +480,7 @@ function toonVandaag() {
       <div class="blokken">${blokken.map((b, k) => `<button class="blok-dag${dag.blokken[b.id] ? ' klaar' : ''}" data-blok="${b.id}" ${b.uit ? 'disabled' : ''}>
         <span class="nr">${dag.blokken[b.id] ? '✓' : k + 1}</span><span><b>${t_().blokken[k]} · 15 min</b><small>${b.sub}</small></span><span class="pijl" aria-hidden="true">›</span></button>`).join('')}</div>
       <div class="cijfers">${[week, zeker, reeks].map((v, k) => `<div class="cijfer"><b>${Math.round(v)}</b><span>${t_().cijfers[k]}</span></div>`).join('')}</div>
+      ${extraKaarten(d)}
       <button class="blok-dag" id="proef" ${examenStof().length < MIN_EXAMEN ? 'disabled' : ''}><span class="nr">A2</span>
         <span><b>${t_().proef}</b><small>${examenStof().length < MIN_EXAMEN ? t_().proefLeeg(MIN_EXAMEN) : t_().proefSub + (d.examens && d.examens.length ? ` · ${t_().proefVorige} ${datum(d.examens[d.examens.length - 1].op)}` : '')}</small></span><span class="pijl" aria-hidden="true">›</span></button>
       <p class="sectie">${t_().situaties}</p>
@@ -470,7 +488,49 @@ function toonVandaag() {
     </section>`;
   scherm.querySelectorAll('[data-blok]').forEach(b => b.onclick = () => startBlok(b.dataset.blok));
   document.getElementById('proef').onclick = startProefexamen;
+  bindExtraKaarten();
   scherm.querySelectorAll('[data-sit]').forEach(b => b.onclick = () => { const sit = sitVan(b.dataset.sit); if (!sit) return; const k = lees().klaar || {}; let n = sit.niveaus.findIndex((_, i) => !k[`${sit.id}:${i}`]); if (n < 0) n = 0; startLes(sit, n); });
+}
+
+// ---------- op de telefoon zetten en dagelijkse herinnering ----------
+// Installeren (PWA) kan alleen op de echte site (daar staat het manifest). De herinnering loopt via de agenda
+// van de telefoon: dat werkt overal en zonder server.
+const opBeginscherm = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent), isAndroid = /android/i.test(navigator.userAgent);
+const heeftManifest = !!document.querySelector('link[rel="manifest"]');
+let installVraag = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installVraag = e; if (S.modus === 'vandaag') toonVandaag(); });
+addEventListener('appinstalled', () => { installVraag = null; if (S.modus === 'vandaag') toonVandaag(); });
+if (heeftManifest && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+function extraKaarten(d) {
+  const install = heeftManifest && !opBeginscherm() && (installVraag || isIOS);
+  const tijd = d.herinnering || '19:00';
+  return (install ? `<button class="blok-dag" id="installeer"><span class="nr">+</span><span><b>${t_().installeer}</b><small>${isIOS && !installVraag ? t_().iosTip : t_().installSub}</small></span><span class="pijl" aria-hidden="true">›</span></button>` : '')
+    + `<div class="blok-dag herinner"><span class="nr">${ICOON.klok}</span><span><b>${t_().herinner}</b><small id="herinnerUit">${d.herinnering ? t_().herinnerGezet(d.herinnering) : t_().herinnerSub}</small>
+      <span class="herinner-rij"><input type="time" id="herinnerTijd" value="${tijd}" aria-label="${t_().herinner}"><button class="knop zacht" id="herinnerKnop">${t_().herinnerKnop}</button></span></span></div>`;
+}
+function bindExtraKaarten() {
+  const b = document.getElementById('installeer');
+  if (b) b.onclick = async () => { if (!installVraag) return; installVraag.prompt(); await installVraag.userChoice.catch(() => {}); installVraag = null; toonVandaag(); };
+  document.getElementById('herinnerKnop').onclick = () => {
+    const tijd = document.getElementById('herinnerTijd').value || '19:00', d = lees(); d.herinnering = tijd; bewaar(d);
+    zetHerinnering(tijd); document.getElementById('herinnerUit').textContent = t_().herinnerGezet(tijd);
+  };
+}
+function zetHerinnering(tijd) { // een afspraak die elke dag terugkomt, op het gekozen tijdstip, een uur lang
+  const nu = new Date(), [u, m] = tijd.split(':').map(Number), dd = n => String(n).padStart(2, '0');
+  const dag = `${nu.getFullYear()}${dd(nu.getMonth() + 1)}${dd(nu.getDate())}`, begin = `${dag}T${dd(u)}${dd(m)}00`, eind = `${dag}T${dd((u + 1) % 24)}${dd(m)}00`;
+  const titel = 'Elke dag Nederlands', link = 'https://taal.vakbord.nl';
+  if (isAndroid) { // Google Agenda opent geen .ics-bestanden; een vooraf ingevulde afspraak wel
+    open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titel)}&dates=${begin}/${eind}&recur=${encodeURIComponent('RRULE:FREQ=DAILY')}&details=${encodeURIComponent(link)}`, '_blank');
+    return;
+  }
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Elke dag Nederlands//NL', 'BEGIN:VEVENT', `UID:herinnering-${Date.now()}@taal.vakbord.nl`,
+    `DTSTAMP:${nu.toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`, `DTSTART:${begin}`, `DTEND:${eind}`, 'RRULE:FREQ=DAILY', `SUMMARY:${titel}`,
+    `DESCRIPTION:${link}`, `URL:${link}`, 'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${titel}`, 'TRIGGER:-PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const a = document.createElement('a'); a.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics); a.download = 'elke-dag-nederlands.ics';
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 // ---------- sessies ----------
